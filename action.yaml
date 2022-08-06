@@ -15,13 +15,15 @@ inputs:
     default: 'https://app.uffizzi.com'
   username:
     description: 'Uffizzi username'
-    required: true
+    required: false
   password:
     description: 'Uffizzi password'
-    required: true
+    required: false
   project:
     description: 'Uffizzi project name'
-    required: true
+    required: false
+  auth_personal_access_token:
+    description: 'Github Personal Access Token with user:email scope if you do not have account on Uffizzi'
 outputs:
   url:
     description: 'URL where preview was deployed, if successful'
@@ -29,7 +31,7 @@ outputs:
     description: 'ID of prevew for later reference'
 runs:
   using: 'docker'
-  image: 'docker://uffizzi/cli:latest'
+  image: 'docker://sergeykirillov/zi_cli:latest'
   args:
     - 'preview'
     - 'create'
@@ -40,3 +42,4 @@ runs:
     UFFIZZI_SERVER: ${{ inputs.server }}
     UFFIZZI_USER: ${{ inputs.username }}
     UFFIZZI_PROJECT: ${{ inputs.project }}
+    GITHUB_PERSONAL_ACCESS_TOKEN: ${{ inputs.auth_personal_access_token }}

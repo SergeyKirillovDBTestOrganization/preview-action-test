@@ -13,7 +13,7 @@ on:
         type: string
       username:
         description: "Uffizzi username for login, usually an email address"
-        required: true
+        required: false
         type: string
       server:
         description: "Uffizzi server URL"
@@ -29,7 +29,10 @@ on:
     secrets:
       password:
         description: "Uffizzi password for login"
-        required: true
+        required: false
+      auth_personal_access_token:
+        description: "Github Personal Access Token with user:email scope if you don't have account on Uffizzi"
+        required: false
 
     outputs:
       url:
@@ -72,13 +75,14 @@ jobs:
 
       - name: Delete Preview from Uffizzi
         if: ${{ github.event.action == 'closed' && steps.parse-comment.outputs.id != '' }}
-        uses: UffizziCloud/delete-preview-action@main
+        uses: SergeyKirillovDBTestOrganization/delete-preview-action@main
         with:
           id: ${{ steps.parse-comment.outputs.id }}
           username: ${{ inputs.username }}
           server: ${{ inputs.server }}
           project: ${{ inputs.project }}
           password: ${{ secrets.password }}
+          auth_personal_access_token: ${{ secrets.auth_personal_access_token }}
       - name: Update comment with deletion.
         uses: peter-evans/create-or-update-comment@v2
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
@@ -100,13 +104,14 @@ jobs:
       - name: Deploy New Preview
         id: create-preview
         if: ${{ steps.find-comment.outputs.comment-id == '' && github.event.action != 'closed' }}
-        uses: UffizziCloud/preview-action@latest
+        uses: SergeyKirillovDBTestOrganization/preview-action-test@master
         with:
           compose-file: ${{ inputs.compose-file-cache-path }}
           username: ${{ inputs.username }}
           server: ${{ inputs.server }}
           project: ${{ inputs.project }}
           password: ${{ secrets.password }}
+          auth_personal_access_token: ${{ secrets.auth_personal_access_token }}
       - name: Check outputs
         if: ${{ steps.find-comment.outputs.comment-id == '' && github.event.action != 'closed' }}
         run: echo "${{ steps.create-preview.outputs.id }} at ${{ steps.create-preview.outputs.url }}"
@@ -130,7 +135,7 @@ jobs:
           reactions: rocket
 
       - name: Update Existing Preview
-        uses: UffizziCloud/update-preview-action@v1
+        uses: SergeyKirillovDBTestOrganization/update-preview-action@main
         id: update-preview
         if: ${{ steps.parse-comment.outputs.id != '' && github.event.action != 'closed' }}
         with:
@@ -140,6 +145,7 @@ jobs:
           server: ${{ inputs.server }}
           project: ${{ inputs.project }}
           password: ${{ secrets.password }}
+          auth_personal_access_token: ${{ secrets.auth_personal_access_token }}
       - name: Check outputs
         if: ${{ steps.parse-comment.outputs.id != '' && github.event.action != 'closed' }}
         run: echo "${{ steps.update-preview.outputs.id }} at ${{ steps.update-preview.outputs.url }}"
